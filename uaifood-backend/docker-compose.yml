@@ -1,0 +1,36 @@
+# Versão do docker-compose
+version: '3.8'
+
+# Nossos serviços (containers)
+services:
+  # O nome do nosso serviço de banco de dados
+  db:
+    # A imagem que queremos usar (PostgreSQL oficial)
+    image: postgres:15-alpine
+
+    # Nome do container (para ficar fácil de identificar)
+    container_name: uaifood-postgres
+
+    # Reinicia o container automaticamente se ele falhar
+    restart: always
+
+    # Variáveis de ambiente para configurar o Postgres
+    # IMPORTANTE: Mude 'minhasenha' para a senha do seu .env
+    environment:
+      POSTGRES_USER: uaifood_user
+      POSTGRES_PASSWORD: minhasenha
+      POSTGRES_DB: uaifood_db
+
+    # Mapeia a porta do container (5432) para a porta do seu PC (5432)
+    # É assim que o Prisma vai conseguir "enxergar" o banco
+    ports:
+      - "5434:5432"
+
+    # Cria um "volume" para persistir os dados
+    # Isso garante que seus dados não sejam perdidos se o container parar
+    volumes:
+      - uaifood-db-data:/var/lib/postgresql/data
+
+# Definição do volume que usamos acima
+volumes:
+  uaifood-db-data:
