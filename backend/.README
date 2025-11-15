@@ -1,0 +1,7 @@
+# Comando para instalar o docker do banco de dados:
+sudo docker compose up -d
+npx prisma migrate dev
+
+# comando para entrar no banco de dados do docker file:
+
+sudo docker exec -it uaifood-postgres psql -U uaifood_user -d uaifood_db
