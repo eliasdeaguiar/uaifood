@@ -1,5 +1,7 @@
+const swaggerJsdoc = require('swagger-jsdoc');
+
 const swaggerOptions = {
-    defintion:{
+    definition:{
         openapi: '3.0.0',
         info: {
             title: 'API UAIFood com Swagger',
@@ -12,7 +14,7 @@ const swaggerOptions = {
             },
         ],
     },
-    apis: ['.src/routes/*.js']
+    apis: ['./src/routes/*.js']
 }
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
