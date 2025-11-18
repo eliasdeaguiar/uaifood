@@ -48,10 +48,33 @@ const getAllItems = async (req, res) => {
   try {
     const items = await prisma.item.findMany({
       include: {
-        category: true, // Inclui os dados da categoria junto com o item
+        category: true,
+        reviews: { // 1. Incluímos as avaliações de cada item
+          select: {
+            rating: true // Só precisamos da nota para calcular a média
+          }
+        }
       },
     });
-    res.status(200).json(items);
+
+    // 2. Calculamos a média e a contagem aqui no backend
+    const itemsWithAvgRating = items.map(item => {
+      const reviewCount = item.reviews.length;
+      const averageRating = reviewCount > 0
+        ? item.reviews.reduce((acc, r) => acc + r.rating, 0) / reviewCount
+        : 0;
+      
+      // Removemos a lista de 'reviews' para não poluir a resposta
+      const { reviews, ...itemWithoutReviews } = item; 
+      
+      return {
+        ...itemWithoutReviews,
+        reviewCount,
+        averageRating
+      };
+    });
+
+    res.status(200).json(itemsWithAvgRating); // 3. Enviamos os itens com os novos campos
   } catch (error) {
     console.error("ERRO AO LISTAR ITENS:", error);
     res.status(500).json({ error: 'Erro ao listar itens.' });

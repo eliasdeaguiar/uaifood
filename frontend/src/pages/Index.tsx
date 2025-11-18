@@ -85,10 +85,12 @@ const Index = () => {
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
+                
+                {/* MUDE AQUI: De '/auth' para '/menu' */}
                 <Button asChild size="lg" variant="secondary" className="text-lg px-8">
-                  <Link to="/auth">Fazer Pedido</Link>
+                  <Link to="/menu">Fazer Pedido</Link>
                 </Button>
-              </div>
+            </div>
             </div>
           </div>
         </section>

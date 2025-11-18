@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Item } from "@/types";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "./AuthContext";
 
 interface CartItem extends Item {
   quantity: number;
@@ -21,6 +22,29 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const { user } = useAuth();
+
+  // 3. CARREGAR CARRINHO QUANDO O USUÁRIO MUDA
+  useEffect(() => {
+    if (user?.id) {
+      // Se tem usuário, busca o carrinho dele
+      const savedCart = localStorage.getItem(`uaifood:cart:${user.id}`);
+      if (savedCart) {
+        setItems(JSON.parse(savedCart));
+      } else {
+        setItems([]); // Carrinho novo
+      }
+    } else {
+      // Se não tem usuário (deslogou), limpa o carrinho da memória
+      setItems([]); 
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (user?.id) {
+      localStorage.setItem(`uaifood:cart:${user.id}`, JSON.stringify(items));
+    }
+  }, [items, user?.id]);
 
   const addItem = (item: Item, quantity: number = 1, observations?: string) => {
     setItems((prev) => {

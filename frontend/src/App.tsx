@@ -14,6 +14,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import MyOrders from "./pages/MyOrders";
 import MyAddresses from "./pages/MyAddresses";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -21,7 +22,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
-      <Sonner />
+      <Sonner position="top-center" richColors closeButton />
       <BrowserRouter>
         <AuthProvider>
           <CartProvider>
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/meus-pedidos" element={<MyOrders />} /> 
               <Route path="/meus-enderecos" element={<MyAddresses />} /> 
+              <Route path="/fale-conosco" element={<Contact />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </CartProvider>

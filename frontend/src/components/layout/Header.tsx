@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { ShoppingCart, User, LogOut, LayoutDashboard, Package, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
@@ -10,11 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { AuthModal } from "@/components/auth/AuthModal";
 
 const Header = () => {
   const { totalItems } = useCart();
   const { user, signOut, isAuthenticated, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const handleLogout = () => {
     signOut();
@@ -81,15 +84,14 @@ const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Link to="/auth">
-              <Button size="sm" variant="hero">
-                <User className="h-4 w-4 mr-2" />
-                Login
-              </Button>
-            </Link>
+            <Button size="sm" variant="hero" onClick={() => setIsAuthModalOpen(true)}>
+              <User className="h-4 w-4 mr-2" />
+              Login
+            </Button>
           )}
         </nav>
       </div>
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </header>
   );
 };
