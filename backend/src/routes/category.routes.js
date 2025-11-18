@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const router = Router();
 const categoryController = require('../controllers/category.controller');
-const { authenticateToken } = require('../controllers/user.controller');
+const { authenticateToken, checkIsAdmin } = require('../controllers/user.controller'); // <--- ADICIONE 'checkIsAdmin'
 
 /**
  * @swagger
@@ -49,7 +49,7 @@ router.get('/', categoryController.getAllCategories);
  *       401:
  *         description: Token não fornecido.
  */
-router.post('/', authenticateToken, categoryController.createCategory);
+router.post('/', authenticateToken, checkIsAdmin, categoryController.createCategory);
 
 /**
  * @swagger
@@ -85,7 +85,34 @@ router.post('/', authenticateToken, categoryController.createCategory);
  *       404:
  *         description: Categoria não encontrada.
  */
-router.put('/:id', authenticateToken, categoryController.updateCategory);
+router.put('/:id', authenticateToken, checkIsAdmin, categoryController.updateCategory);
 
+/**
+ * @swagger
+ * /categories/{id}:
+ *   delete:
+ *     summary: Remove uma categoria
+ *     description: Deleta uma categoria existente pelo ID. (Requer Admin)
+ *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID da categoria
+ *     responses:
+ *       200:
+ *         description: Categoria removida com sucesso.
+ *       401:
+ *         description: Token não fornecido.
+ *       403:
+ *         description: Acesso negado (não é admin).
+ *       404:
+ *         description: Categoria não encontrada.
+ */
+router.delete('/:id', authenticateToken, checkIsAdmin, categoryController.deleteCategory);
 
 module.exports = router;

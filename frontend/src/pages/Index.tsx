@@ -1,18 +1,56 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import FoodCard from "@/components/FoodCard";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import heroImg from "@/assets/hero-food.jpg";
-import { mockItems, mockDishesOfTheDay } from "@/data/mockData";
+//import { mockItems, mockDishesOfTheDay } from "@/data/mockData";
+import { api } from "@/lib/api"; // 3. IMPORTE A API
+import { Item, DishOfTheDay } from "@/types"; // 4. IMPORTE OS TIPOS
+import { Skeleton } from "@/components/ui/skeleton"; // 5. IMPORTE SKELETON
 
-const today = new Date().getDay();
-const todayDish = mockDishesOfTheDay.find(d => d.dayOfWeek === today);
-const dishOfTheDay = todayDish ? [mockItems.find(i => i.id === todayDish.itemId)].filter(Boolean) : [];
-const popularItems = mockItems.slice(0, 3);
 
 const Index = () => {
+
+  // 7. CRIE OS NOVOS ESTADOS
+  const [dishOfTheDay, setDishOfTheDay] = useState<Item | null>(null);
+  const [popularItems, setPopularItems] = useState<Item[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // 8. ADICIONE O 'useEffect' PARA BUSCAR OS DADOS
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const [dishesResponse, itemsResponse] = await Promise.all([
+          api.get('/dishes-of-the-day'),
+          api.get('/items')
+        ]);
+
+        // Lógica do Prato do Dia
+        const today = new Date().getDay(); // 0 = Domingo, 1 = Segunda, etc.
+        const todayDishConfig = dishesResponse.data.find(
+          (d: DishOfTheDay) => d.dayOfWeek === today
+        );
+        
+        if (todayDishConfig) {
+          setDishOfTheDay(todayDishConfig.item); // O backend já inclui o item!
+        }
+
+        // Lógica dos Populares (Por enquanto, pegamos os 3 primeiros, assim como o mock)
+        setPopularItems(itemsResponse.data.slice(0, 3));
+
+      } catch (error) {
+        console.error("Erro ao buscar dados da home:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   return (
     <div className="min-h-screen">
       <Header />
@@ -55,24 +93,29 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Dish of the Day Section */}
-        {dishOfTheDay.length > 0 && (
+        {/* 9. ADICIONE O 'isLoading' NO PRATO DO DIA */}
+        {isLoading ? (
           <section className="container py-20">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Prato do Dia
-              </h2>
-              <p className="text-muted-foreground text-lg">
-                Sabor especial selecionado para você hoje
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 justify-center">
-              {dishOfTheDay.map((item) => item && (
-                <FoodCard key={item.id} item={item} />
-              ))}
-            </div>
+            <Skeleton className="h-12 w-1/2 mx-auto mb-12" />
+            <Skeleton className="h-[400px] w-full md:w-1/3 mx-auto" />
           </section>
+        ) : (
+          dishOfTheDay && (
+            <section className="container py-20">
+              <div className="text-center mb-12">
+                <h2 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  Prato do Dia
+                </h2>
+                <p className="text-muted-foreground text-lg">
+                  Sabor especial selecionado para você hoje
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 justify-center">
+                <FoodCard item={dishOfTheDay} />
+              </div>
+            </section>
+          )
         )}
 
         {/* Featured Items Section */}
@@ -86,11 +129,20 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {popularItems.map((item) => (
-              <FoodCard key={item.id} item={item} />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Skeleton className="h-[400px] w-full" />
+              <Skeleton className="h-[400px] w-full" />
+              <Skeleton className="h-[400px] w-full" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* 12. MAPEIE O ESTADO 'popularItems' */}
+              {popularItems.map((item) => (
+                <FoodCard key={item.id} item={item} />
+              ))}
+            </div>
+          )}
 
           <div className="text-center mt-12">
             <Button asChild size="lg" variant="outline" className="text-lg px-8">

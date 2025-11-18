@@ -67,6 +67,7 @@ export interface Order {
   address?: Address;
   createdAt: Date;
   updatedAt: Date;
+  items?: OrderItem[];
 }
 
 export interface OrderItem {
@@ -81,6 +82,7 @@ export interface OrderItem {
 export interface Review {
   id: string;
   itemId: string;
+  item?: Item;
   userId: string;
   user?: User;
   rating: number;

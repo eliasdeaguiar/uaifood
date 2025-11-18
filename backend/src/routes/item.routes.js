@@ -1,7 +1,8 @@
 const { Router } = require('express');
 const router = Router();
 const itemController = require('../controllers/item.controller');
-const { authenticateToken } = require('../controllers/user.controller');
+const reviewController = require('../controllers/review.controller');
+const { authenticateToken, checkIsAdmin } = require('../controllers/user.controller');
 const { upload } = require('../config/upload.config');
 
 /**
@@ -55,10 +56,10 @@ router.get('/', itemController.getAllItems);
  *       400:
  *         description: Dados inválidos ou imagem faltante.
  */
-router.post(
-  '/',
-  authenticateToken,
-  upload.single('image'),
+router.post('/', 
+  authenticateToken, 
+  checkIsAdmin, 
+  upload.single('image'), 
   itemController.createItem
 );
 
@@ -104,9 +105,9 @@ router.post(
  *       404:
  *         description: Item não encontrado.
  */
-router.put(
-  '/:id',
+router.put('/:id',
   authenticateToken,
+  checkIsAdmin,
   upload.single('image'),
   itemController.updateItem
 );
@@ -137,7 +138,29 @@ router.put(
  *       404:
  *         description: Item não encontrado.
  */
-router.delete('/:id', authenticateToken, itemController.deleteItem);
+router.delete('/:id', authenticateToken, checkIsAdmin, itemController.deleteItem);
+
+/**
+ * @swagger
+ * /items/{itemId}/reviews:
+ *   get:
+ *     summary: (Público) Lista as avaliações de um item
+ *     description: Retorna todas as avaliações de um item específico.
+ *     tags: [Items]
+ *     parameters:
+ *       - in: path
+ *         name: itemId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Lista de avaliações.
+ *       404:
+ *         description: Item não encontrado.
+ */
+router.get('/:itemId/reviews', reviewController.getReviewsByItem);
+
 
 
 module.exports = router;

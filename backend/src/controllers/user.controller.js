@@ -126,10 +126,33 @@ const getMe = async (req, res) => {
   }
 };
 
+// ADICIONE ESTA NOVA FUNÇÃO (middleware)
+const checkIsAdmin = async (req, res, next) => {
+  const userId = req.user.id; // Pega o ID do middleware 'authenticateToken'
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { userType: true }
+    });
+
+    if (!user || user.userType !== 'ADMIN') {
+      return res.status(403).json({ error: 'Acesso negado. Rota exclusiva para administradores.' });
+    }
+
+    // Se for admin, continue
+    next();
+  } catch (error) {
+    console.error("ERRO AO VERIFICAR ADMIN:", error);
+    res.status(500).json({ error: 'Erro interno ao verificar permissões.' });
+  }
+};
+
 module.exports = {
   createUser,
   login,
   logout,
   authenticateToken,
-  getMe, // <--- ADICIONE "getMe," AQUI
+  getMe,
+  checkIsAdmin, // <--- ADICIONE AQUI
 };

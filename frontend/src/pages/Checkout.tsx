@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -9,18 +9,17 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { mockAddresses } from "@/data/mockData";
-import { PaymentMethod } from "@/types";
+//import { mockAddresses } from "@/data/mockData";
+import { PaymentMethod, Address } from "@/types";
 import { toast } from "@/hooks/use-toast";
-import { CreditCard, Wallet, Banknote, MapPin } from "lucide-react";
+import { CreditCard, Wallet, Banknote, MapPin, Plus } from "lucide-react"; // 4. IMPORTE O ÍCONE 'Plus'
+import { api } from "@/lib/api"; // 5. IMPORTE A 'api'
+import { Skeleton } from "@/components/ui/skeleton"; // 6. IMPORTE 'Skeleton'
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { items, totalPrice, clearCart } = useCart();
   const { user, isAuthenticated } = useAuth();
-  const [selectedAddress, setSelectedAddress] = useState(mockAddresses[0]?.id || "");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.PIX);
-  const deliveryFee = 8.00;
 
   if (!isAuthenticated) {
     navigate("/auth");
@@ -32,16 +31,101 @@ const Checkout = () => {
     return null;
   }
 
-  const userAddresses = mockAddresses.filter((addr) => addr.userId === user?.id);
+  // 7. CRIE OS NOVOS ESTADOS
+  const [userAddresses, setUserAddresses] = useState<Address[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // 8. ATUALIZE O ESTADO 'selectedAddress'
+  // Ele começará vazio e será preenchido após a busca
+  const [selectedAddress, setSelectedAddress] = useState(""); 
+  
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.PIX);
+  const deliveryFee = 8.00;
+
+  // 9. CRIE O 'useEffect' PARA BUSCAR OS ENDEREÇOS
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/auth");
+      return;
+    }
+
+    const fetchAddresses = async () => {
+      setIsLoading(true);
+      try {
+        const response = await api.get('/addresses/me');
+        setUserAddresses(response.data);
+        
+        // Seleciona o primeiro endereço da lista por padrão
+        if (response.data.length > 0) {
+          setSelectedAddress(response.data[0].id);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar endereços:", error);
+        toast({ title: "Erro ao buscar seus endereços", variant: "destructive" });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAddresses();
+  }, [isAuthenticated, navigate]);
+
+
+  if (items.length === 0) {
+    navigate("/cart");
+    return null;
+  }
+
+  // 10. REMOVA A LÓGICA MOCKADA
+  // const userAddresses = mockAddresses.filter((addr) => addr.userId === user?.id);
   const selectedAddressData = userAddresses.find((addr) => addr.id === selectedAddress);
 
-  const handleConfirmOrder = () => {
-    toast({
-      title: "Pedido realizado com sucesso!",
-      description: "Seu pedido está sendo preparado e logo estará a caminho.",
-    });
-    clearCart();
-    navigate("/");
+  const handleConfirmOrder = async () => {
+    // 1. Verificação de segurança
+    if (!selectedAddress) {
+      toast({ title: "Erro", description: "Por favor, selecione um endereço de entrega.", variant: "destructive" });
+      return;
+    }
+    if (items.length === 0) {
+      toast({ title: "Erro", description: "Seu carrinho está vazio.", variant: "destructive" });
+      return;
+    }
+
+    // 2. Formatar os itens para o backend
+    // O backend espera: [{ itemId: 1, quantity: 2 }, ...]
+    const orderItems = items.map(item => ({
+      itemId: parseInt(item.id), // Garantir que é um número
+      quantity: item.quantity,
+    }));
+
+    // 3. Montar o payload final
+    const orderData = {
+      paymentMethod: paymentMethod,       // Do estado
+      addressId: parseInt(selectedAddress), // Do estado (garantir que é número)
+      items: orderItems,                  // Do carrinho
+    };
+
+    // 4. Enviar para a API
+    try {
+      await api.post('/orders', orderData); // O AuthContext já injeta o Token
+
+      // 5. Sucesso!
+      toast({
+        title: "Pedido realizado com sucesso!",
+        description: "Seu pedido está sendo preparado e logo estará a caminho.",
+      });
+      clearCart();
+      navigate("/"); // Redireciona para a home
+
+    } catch (error: any) {
+      console.error("Erro ao confirmar pedido:", error);
+      const errorMsg = error.response?.data?.error || "Não foi possível finalizar o pedido.";
+      toast({
+        title: "Erro no Pedido",
+        description: errorMsg,
+        variant: "destructive",
+      });
+    }
   };
 
   const paymentIcons = {
@@ -78,24 +162,40 @@ const Checkout = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <RadioGroup value={selectedAddress} onValueChange={setSelectedAddress}>
-                  {userAddresses.map((address) => (
-                    <div key={address.id} className="flex items-center space-x-2 border rounded-lg p-4">
-                      <RadioGroupItem value={address.id} id={address.id} />
-                      <Label htmlFor={address.id} className="flex-1 cursor-pointer">
-                        <div className="font-semibold">
-                          {address.street}, {address.number}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {address.district} - {address.city}/{address.state}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          CEP: {address.zipCode}
-                        </div>
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
+                {/* 11. ADICIONE O 'isLoading' */}
+                {isLoading ? (
+                  <Skeleton className="h-24 w-full" />
+                ) : (
+                  <RadioGroup value={selectedAddress} onValueChange={setSelectedAddress}>
+                    {userAddresses.map((address) => (
+                      <div key={address.id} className="flex items-center space-x-2 border rounded-lg p-4">
+                        <RadioGroupItem value={address.id} id={address.id} />
+                        <Label htmlFor={address.id} className="flex-1 cursor-pointer">
+                          <div className="font-semibold">
+                            {address.street}, {address.number}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {address.district} - {address.city}/{address.state}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            CEP: {address.zipCode}
+                          </div>
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                )}
+
+                {/* 13. (BÔNUS) BOTÃO PARA ADICIONAR ENDEREÇO */}
+                {/* (Ainda não temos o modal para isso, mas podemos deixar o botão) */}
+                <Button 
+                  variant="outline" 
+                  className="w-full mt-4" 
+                  onClick={() => navigate('/meus-enderecos')} // <--- MUDE AQUI
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Gerenciar Endereços
+                </Button>
               </CardContent>
             </Card>
 

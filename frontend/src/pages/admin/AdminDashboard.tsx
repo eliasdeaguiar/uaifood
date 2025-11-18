@@ -8,6 +8,7 @@ import ItemsManagement from "@/components/admin/ItemsManagement";
 import ReviewsManagement from "@/components/admin/ReviewsManagement";
 import MessagesManagement from "@/components/admin/MessagesManagement";
 import DishOfTheDayManagement from "@/components/admin/DishOfTheDayManagement";
+import AdminOrderManagement from "@/components/admin/AdminOrderManagement";
 
 const AdminDashboard = () => {
   const { isAdmin } = useAuth();
@@ -21,17 +22,24 @@ const AdminDashboard = () => {
       <Header />
       
       <main className="flex-1 container py-8">
-        <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold mb-8 ...">
           Painel Administrativo
         </h1>
 
-        <Tabs defaultValue="items" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+        <Tabs defaultValue="orders" className="w-full"> {/* 2. MUDE O 'defaultValue' */}
+          {/* 3. ATUALIZE O GRID (de 'grid-cols-4' para 'grid-cols-5') */}
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="orders">Pedidos</TabsTrigger> {/* 4. ADICIONE A NOVA ABA */}
             <TabsTrigger value="items">Pratos</TabsTrigger>
             <TabsTrigger value="reviews">Avaliações</TabsTrigger>
             <TabsTrigger value="messages">Mensagens</TabsTrigger>
             <TabsTrigger value="dishes">Pratos do Dia</TabsTrigger>
           </TabsList>
+
+          {/* 5. ADICIONE O NOVO CONTEÚDO */}
+          <TabsContent value="orders">
+            <AdminOrderManagement />
+          </TabsContent>
 
           <TabsContent value="items">
             <ItemsManagement />

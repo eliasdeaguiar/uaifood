@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, User, LogOut, LayoutDashboard } from "lucide-react";
+import { ShoppingCart, User, LogOut, LayoutDashboard, Package, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -62,6 +62,18 @@ const Header = () => {
                     <DropdownMenuSeparator />
                   </>
                 )}
+
+                <DropdownMenuItem onClick={() => navigate("/meus-pedidos")}>
+                  <Package className="h-4 w-4 mr-2" />
+                  Meus Pedidos
+                </DropdownMenuItem>
+
+                {/* 2. ADICIONE ESTE ITEM */}
+                <DropdownMenuItem onClick={() => navigate("/meus-enderecos")}>
+                  <MapPin className="h-4 w-4 mr-2" />
+                  Meus Endereços
+                </DropdownMenuItem>
+
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Sair
