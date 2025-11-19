@@ -89,7 +89,7 @@ const Auth = () => {
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
+                  <Label htmlFor="login-email">Telefone</Label>
                   <Input
                     id="login-phone"
                     type="tel" // Mude o tipo
@@ -104,7 +104,7 @@ const Auth = () => {
                   <Input
                     id="login-password"
                     type="password"
-                    placeholder="••••••"
+                    placeholder="******"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required

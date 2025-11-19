@@ -9,6 +9,7 @@ import ReviewsManagement from "@/components/admin/ReviewsManagement";
 import MessagesManagement from "@/components/admin/MessagesManagement";
 import DishOfTheDayManagement from "@/components/admin/DishOfTheDayManagement";
 import AdminOrderManagement from "@/components/admin/AdminOrderManagement";
+import DashboardOverview from "@/components/admin/DashboardOverview";
 
 const AdminDashboard = () => {
   const { isAdmin } = useAuth();
@@ -26,9 +27,10 @@ const AdminDashboard = () => {
           Painel Administrativo
         </h1>
 
-        <Tabs defaultValue="orders" className="w-full"> {/* 2. MUDE O 'defaultValue' */}
+        <Tabs defaultValue="overview" className="w-full"> {/* 2. MUDE O 'defaultValue' */}
           {/* 3. ATUALIZE O GRID (de 'grid-cols-4' para 'grid-cols-5') */}
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="orders">Pedidos</TabsTrigger> {/* 4. ADICIONE A NOVA ABA */}
             <TabsTrigger value="items">Pratos</TabsTrigger>
             <TabsTrigger value="reviews">Avaliações</TabsTrigger>
@@ -36,7 +38,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="dishes">Pratos do Dia</TabsTrigger>
           </TabsList>
 
-          {/* 5. ADICIONE O NOVO CONTEÚDO */}
+          <TabsContent value="overview">
+            <DashboardOverview />
+          </TabsContent>
+          
           <TabsContent value="orders">
             <AdminOrderManagement />
           </TabsContent>
